@@ -104,6 +104,7 @@ class ItemRepository:
             .where(ItemModel.remind_me_at != None)
             .where(ItemModel.reminded == False)
             .where(ItemModel.dispatched == False)
-            .where(ItemModel.remind_me_at <= window_end) 
+            .where(ItemModel.remind_me_at <= window_end)
+            .with_for_update(skip_locked=True)
         )
         return result.scalars().all()
