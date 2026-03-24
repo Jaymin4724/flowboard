@@ -24,6 +24,10 @@ class Settings(BaseSettings):
     MAIL_PORT: int = 587
     MAIL_SERVER: str
 
+    AWS_ACCESS_KEY_ID: str
+    AWS_SECRET_ACCESS_KEY: str
+    AWS_REGION: str
+    AWS_S3_BUCKET: str
     TESTING: bool = True
     EMAIL_SERVICE_ACTIVE: bool = True
     # Configuration to link the .env file

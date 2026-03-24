@@ -17,10 +17,11 @@ class UserCreateSchema(UserBaseSchema):
 
 
 class UserOutSchema(UserBaseSchema):
-    id: uuid.UUID  
+    id: uuid.UUID
     is_verified: bool
     created_at: datetime
-    last_updated_at: datetime  
+    last_updated_at: datetime
+    profile_photo_key: Optional[str] = None
 
 
 class UserInDBSchema(UserOutSchema):
@@ -36,3 +37,4 @@ class UserUpdateSchema(BaseModel):
     is_active: Optional[bool] = None
     is_admin: Optional[bool] = None
     is_verified: Optional[bool] = None
+    profile_photo_key: Optional[str] = None

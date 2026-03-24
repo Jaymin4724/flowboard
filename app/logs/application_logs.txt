@@ -1278,3 +1278,165 @@
 2026-03-23 16:17:32,952 - INFO - ID: 55a8c1ca-8c44-4827-9a5c-debd238f1383 | Path: /items/ | Status: 200 | Time: 0.2423s
 **********************************************************
 
+2026-03-24 06:22:31,529 - INFO - ID: 88dbd052-3d4a-4f97-9885-b1c2ba8914d7 | Method: GET | Path: /docs
+2026-03-24 06:22:31,532 - INFO - ID: 88dbd052-3d4a-4f97-9885-b1c2ba8914d7 | Path: /docs | Status: 200 | Time: 0.0027s
+**********************************************************
+
+2026-03-24 06:22:31,845 - INFO - ID: 4a3ff09d-4dc8-4eb9-abf4-14195ea88b59 | Method: GET | Path: /openapi.json
+2026-03-24 06:22:31,997 - INFO - ID: 4a3ff09d-4dc8-4eb9-abf4-14195ea88b59 | Path: /openapi.json | Status: 200 | Time: 0.1519s
+**********************************************************
+
+2026-03-24 06:22:49,127 - INFO - ID: bde4393a-02b6-439d-a3b9-137c7242b9b7 | Method: POST | Path: /users/login
+2026-03-24 06:22:49,140 - INFO - Function Start: login | Args: () Kwargs: {'db': 'obj', 'user_repo': 'obj', 'auth_service': 'obj', 'user_in': {'email': 'jaymin4724@gmail.com', 'password': '*******'}}
+2026-03-24 06:22:50,102 - INFO - Function Success: login | Result: {'success': True, 'message': 'Login successful.', 'data': {'access_token': '*******', 'refresh_token': '*******', 'token_type': 'bearer'}}
+2026-03-24 06:22:50,102 - INFO - ID: bde4393a-02b6-439d-a3b9-137c7242b9b7 | Path: /users/login | Status: 200 | Time: 0.9757s
+**********************************************************
+
+2026-03-24 06:23:53,855 - INFO - ID: a5fa9c98-75e1-4aab-abee-10247348f66d | Method: GET | Path: /admin/users
+2026-03-24 06:23:53,875 - INFO - Function Start: get_all_users | Args: () Kwargs: {'db': 'obj', 'admin_repo': 'obj', 'admin_dep': 'obj', 'pagination': {'page': 1, 'size': 10}}
+2026-03-24 06:23:53,888 - INFO - Function Success: get_all_users | Result: {'success': True, 'message': 'Successfully retrieved all users.', 'data': [{'email': 'jaymin4724@gmail.com', 'username': 'jaymin4724', 'is_active': True, 'is_admin': True, 'id': UUID('042d427f-be5c-4786-9173-369e814b685a'), 'is_verified': True, 'created_at': datetime.datetime(2026, 3, 21, 13, 51, 55, 493216), 'last_updated_at': datetime.datetime(2026, 3, 21, 13, 51, 55, 493216)}, {'email': 'jaymin.dave@armakuni.com', 'username': 'jaymin4724', 'is_active': True, 'is_admin': True, 'id': UUID('63665931-abaa-438b-81bd-f59f7fb14e96'), 'is_verified': True, 'created_at': datetime.datetime(2026, 3, 21, 14, 2, 43, 568742), 'last_updated_at': datetime.datetime(2026, 3, 21, 14, 2, 43, 568742)}]}
+2026-03-24 06:23:53,891 - INFO - ID: a5fa9c98-75e1-4aab-abee-10247348f66d | Path: /admin/users | Status: 200 | Time: 0.0360s
+**********************************************************
+
+2026-03-24 06:24:28,280 - INFO - ID: a5520afe-db28-4942-812e-666d5e980cd0 | Method: GET | Path: /docs
+2026-03-24 06:24:28,281 - INFO - ID: a5520afe-db28-4942-812e-666d5e980cd0 | Path: /docs | Status: 200 | Time: 0.0016s
+**********************************************************
+
+2026-03-24 06:24:28,461 - INFO - ID: c30dfd18-4b7d-43ac-83ee-eb9dd6b4fccf | Method: GET | Path: /openapi.json
+2026-03-24 06:24:28,556 - INFO - ID: c30dfd18-4b7d-43ac-83ee-eb9dd6b4fccf | Path: /openapi.json | Status: 200 | Time: 0.0949s
+**********************************************************
+
+2026-03-24 06:24:43,691 - INFO - ID: b2d1f9c9-38c6-415a-bac6-842df0475555 | Method: POST | Path: /users/login
+2026-03-24 06:24:43,702 - INFO - Function Start: login | Args: () Kwargs: {'db': 'obj', 'user_repo': 'obj', 'auth_service': 'obj', 'user_in': {'email': 'jaymin4724@gmail.com', 'password': '*******'}}
+2026-03-24 06:24:44,586 - INFO - Function Success: login | Result: {'success': True, 'message': 'Login successful.', 'data': {'access_token': '*******', 'refresh_token': '*******', 'token_type': 'bearer'}}
+2026-03-24 06:24:44,587 - INFO - ID: b2d1f9c9-38c6-415a-bac6-842df0475555 | Path: /users/login | Status: 200 | Time: 0.8959s
+**********************************************************
+
+2026-03-24 06:25:02,679 - INFO - ID: a5f8c8e3-9ad3-47ec-a46d-8da19f16cc10 | Method: GET | Path: /admin/users
+2026-03-24 06:25:02,696 - INFO - Function Start: get_all_users | Args: () Kwargs: {'db': 'obj', 'admin_repo': 'obj', 'admin_dep': 'obj', 'pagination': {'page': 1, 'size': 10}}
+2026-03-24 06:25:02,704 - INFO - Function Success: get_all_users | Result: {'success': True, 'message': 'Successfully retrieved all users.', 'data': [{'email': 'jaymin4724@gmail.com', 'username': 'jaymin4724', 'is_active': True, 'is_admin': True, 'id': UUID('042d427f-be5c-4786-9173-369e814b685a'), 'is_verified': True, 'created_at': datetime.datetime(2026, 3, 21, 13, 51, 55, 493216), 'last_updated_at': datetime.datetime(2026, 3, 21, 13, 51, 55, 493216)}, {'email': 'jaymin.dave@armakuni.com', 'username': 'jaymin4724', 'is_active': True, 'is_admin': True, 'id': UUID('63665931-abaa-438b-81bd-f59f7fb14e96'), 'is_verified': True, 'created_at': datetime.datetime(2026, 3, 21, 14, 2, 43, 568742), 'last_updated_at': datetime.datetime(2026, 3, 21, 14, 2, 43, 568742)}]}
+2026-03-24 06:25:02,705 - INFO - ID: a5f8c8e3-9ad3-47ec-a46d-8da19f16cc10 | Path: /admin/users | Status: 200 | Time: 0.0258s
+**********************************************************
+
+2026-03-24 06:25:13,637 - INFO - ID: 0e5540cf-c9bc-4c08-b705-962d5c23ee66 | Method: GET | Path: /users/profile-photo/042d427f-be5c-4786-9173-369e814b685a
+2026-03-24 06:25:13,641 - INFO - Function Start: download_photo | Args: () Kwargs: {'db': 'obj', 'user_repo': 'obj', 'user_id': '042d427f-be5c-4786-9173-369e814b685a'}
+2026-03-24 06:25:13,648 - ERROR - Function Error: download_photo | Exception: 404: No profile photo set.
+2026-03-24 06:25:13,651 - INFO - ID: 0e5540cf-c9bc-4c08-b705-962d5c23ee66 | Path: /users/profile-photo/042d427f-be5c-4786-9173-369e814b685a | Status: 404 | Time: 0.0145s
+**********************************************************
+
+2026-03-24 06:25:36,835 - INFO - ID: b0d8ce1c-fb3a-4614-a25d-7fbee3855ae1 | Method: POST | Path: /users/profile-photo/042d427f-be5c-4786-9173-369e814b685a
+2026-03-24 06:25:36,847 - INFO - Function Start: upload_photo | Args: () Kwargs: {'db': 'obj', 'user_repo': 'obj', 'user_id': '042d427f-be5c-4786-9173-369e814b685a', 'file': 'obj'}
+2026-03-24 06:25:37,238 - INFO - Function Success: upload_photo | Result: {'success': True, 'message': 'Profile photo updated successfully.', 'data': {'s3_key': 'profile-photos/user_042d427f-be5c-4786-9173-369e814b685a.png'}}
+2026-03-24 06:25:37,239 - INFO - ID: b0d8ce1c-fb3a-4614-a25d-7fbee3855ae1 | Path: /users/profile-photo/042d427f-be5c-4786-9173-369e814b685a | Status: 200 | Time: 0.4042s
+**********************************************************
+
+2026-03-24 06:26:26,609 - INFO - ID: af3c80aa-e3e2-4a18-968b-d0c55f0ef91b | Method: GET | Path: /users/profile-photo/042d427f-be5c-4786-9173-369e814b685a
+2026-03-24 06:26:26,618 - INFO - Function Start: download_photo | Args: () Kwargs: {'db': 'obj', 'user_repo': 'obj', 'user_id': '042d427f-be5c-4786-9173-369e814b685a'}
+2026-03-24 06:26:26,797 - INFO - Function Success: download_photo | Result: {'success': True, 'message': 'Pre-signed URL generated successfully.', 'data': {'download_url': 'https://amzn-todo-app-bucket.s3.amazonaws.com/profile-photos/user_042d427f-be5c-4786-9173-369e814b685a.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAZDZTB6NYISC2OQS6%2F20260324%2Fap-south-1%2Fs3%2Faws4_request&X-Amz-Date=20260324T005626Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=e8a5b6ecff3dff0c81e96229416dae75eb631fb44a8c2aa4eb202905a9993ae9', 'expires_in_seconds': 3600}}
+2026-03-24 06:26:26,798 - INFO - ID: af3c80aa-e3e2-4a18-968b-d0c55f0ef91b | Path: /users/profile-photo/042d427f-be5c-4786-9173-369e814b685a | Status: 200 | Time: 0.1890s
+**********************************************************
+
+2026-03-24 06:27:54,746 - INFO - ID: 3f64dba2-a0ef-4331-9748-5b67f5f2eac3 | Method: GET | Path: /users/profile-photo/042d427f-be5c-4786-9173-369e814b685a
+2026-03-24 06:27:54,750 - INFO - Function Start: download_photo | Args: () Kwargs: {'db': 'obj', 'user_repo': 'obj', 'user_id': '042d427f-be5c-4786-9173-369e814b685a'}
+2026-03-24 06:27:54,776 - INFO - Function Success: download_photo | Result: {'success': True, 'message': 'Pre-signed URL generated successfully.', 'data': {'download_url': 'https://amzn-todo-app-bucket.s3.amazonaws.com/profile-photos/user_042d427f-be5c-4786-9173-369e814b685a.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAZDZTB6NYISC2OQS6%2F20260324%2Fap-south-1%2Fs3%2Faws4_request&X-Amz-Date=20260324T005754Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=8d2303f2b715cbbf81744ebdb83efc50706ef213c2a6602193e57b5258a8bbdb', 'expires_in_seconds': 3600}}
+2026-03-24 06:27:54,776 - INFO - ID: 3f64dba2-a0ef-4331-9748-5b67f5f2eac3 | Path: /users/profile-photo/042d427f-be5c-4786-9173-369e814b685a | Status: 200 | Time: 0.0312s
+**********************************************************
+
+2026-03-24 06:28:10,570 - INFO - ID: 7dedbc38-ffd4-4b7b-bdb7-c2b899df6b5d | Method: GET | Path: /docs
+2026-03-24 06:28:10,571 - INFO - ID: 7dedbc38-ffd4-4b7b-bdb7-c2b899df6b5d | Path: /docs | Status: 200 | Time: 0.0016s
+**********************************************************
+
+2026-03-24 06:28:10,749 - INFO - ID: 7cc64e68-f01c-42d8-b00b-d4ef01a7f4fb | Method: GET | Path: /openapi.json
+2026-03-24 06:28:10,867 - INFO - ID: 7cc64e68-f01c-42d8-b00b-d4ef01a7f4fb | Path: /openapi.json | Status: 200 | Time: 0.1171s
+**********************************************************
+
+2026-03-24 06:28:57,494 - INFO - ID: 94c99df6-fc74-4201-aa3b-f13a7c9ed1d0 | Method: POST | Path: /users/login
+2026-03-24 06:28:57,511 - INFO - Function Start: login | Args: () Kwargs: {'db': 'obj', 'user_repo': 'obj', 'auth_service': 'obj', 'user_in': {'email': 'jaymin4724@gmail.com', 'password': '*******'}}
+2026-03-24 06:28:58,447 - INFO - Function Success: login | Result: {'success': True, 'message': 'Login successful.', 'data': {'access_token': '*******', 'refresh_token': '*******', 'token_type': 'bearer'}}
+2026-03-24 06:28:58,448 - INFO - ID: 94c99df6-fc74-4201-aa3b-f13a7c9ed1d0 | Path: /users/login | Status: 200 | Time: 0.9549s
+**********************************************************
+
+2026-03-24 06:29:28,720 - INFO - ID: 58cff78b-22ad-4a83-921a-1c487fbee057 | Method: GET | Path: /users/profile-photo/042d427f-be5c-4786-9173-369e814b685a
+2026-03-24 06:29:28,723 - INFO - Function Start: download_photo | Args: () Kwargs: {'db': 'obj', 'user_repo': 'obj', 'user_id': '042d427f-be5c-4786-9173-369e814b685a'}
+2026-03-24 06:29:28,740 - INFO - Function Success: download_photo | Result: {'success': True, 'message': 'Pre-signed URL generated successfully.', 'data': {'download_url': 'https://amzn-todo-app-bucket.s3.amazonaws.com/profile-photos/user_042d427f-be5c-4786-9173-369e814b685a.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAZDZTB6NYISC2OQS6%2F20260324%2Fap-south-1%2Fs3%2Faws4_request&X-Amz-Date=20260324T005928Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=855ed2b23a96aee9156c828f9b34c3430a5042f04566a3fb0a475d1fa0613548', 'expires_in_seconds': 3600}}
+2026-03-24 06:29:28,741 - INFO - ID: 58cff78b-22ad-4a83-921a-1c487fbee057 | Path: /users/profile-photo/042d427f-be5c-4786-9173-369e814b685a | Status: 200 | Time: 0.0214s
+**********************************************************
+
+2026-03-24 06:30:19,350 - INFO - ID: 456d165d-0458-42e3-9ab7-7bc0c31f70b0 | Method: GET | Path: /docs
+2026-03-24 06:30:19,355 - INFO - ID: 456d165d-0458-42e3-9ab7-7bc0c31f70b0 | Path: /docs | Status: 200 | Time: 0.0056s
+**********************************************************
+
+2026-03-24 06:30:19,725 - INFO - ID: 4df8da7c-01bd-4c0b-ae56-d8dd2531c0ee | Method: GET | Path: /openapi.json
+2026-03-24 06:30:20,360 - INFO - ID: 4df8da7c-01bd-4c0b-ae56-d8dd2531c0ee | Path: /openapi.json | Status: 200 | Time: 0.6286s
+**********************************************************
+
+2026-03-24 06:30:38,600 - INFO - ID: 1b396703-7942-4b50-97b4-bdf8dbf3b0ec | Method: GET | Path: /users/profile-photo/042d427f-be5c-4786-9173-369e814b685a
+2026-03-24 06:30:38,615 - INFO - Function Start: download_photo | Args: () Kwargs: {'db': 'obj', 'user_repo': 'obj', 'user_id': '042d427f-be5c-4786-9173-369e814b685a'}
+2026-03-24 06:30:38,809 - INFO - Function Success: download_photo | Result: {'success': True, 'message': 'Pre-signed URL generated successfully.', 'data': {'download_url': 'https://amzn-todo-app-bucket.s3.amazonaws.com/profile-photos/user_042d427f-be5c-4786-9173-369e814b685a.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAZDZTB6NYISC2OQS6%2F20260324%2Fap-south-1%2Fs3%2Faws4_request&X-Amz-Date=20260324T010038Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=b68148c06f75260e58d1a7ad53000950d955c9457dade70e9d0dd7f627449ecc', 'expires_in_seconds': 3600}}
+2026-03-24 06:30:38,810 - INFO - ID: 1b396703-7942-4b50-97b4-bdf8dbf3b0ec | Path: /users/profile-photo/042d427f-be5c-4786-9173-369e814b685a | Status: 200 | Time: 0.2102s
+**********************************************************
+
+2026-03-24 06:37:15,421 - INFO - ID: cbdaac50-9bc5-4e9d-ac10-baab3452b7ff | Method: GET | Path: /
+2026-03-24 06:37:15,430 - INFO - ID: cbdaac50-9bc5-4e9d-ac10-baab3452b7ff | Path: / | Status: 200 | Time: 0.0102s
+**********************************************************
+
+2026-03-24 06:37:15,567 - INFO - ID: 1f5a6c4d-a124-412f-a049-abac6d8f470e | Method: GET | Path: /favicon.ico
+2026-03-24 06:37:15,568 - INFO - ID: 1f5a6c4d-a124-412f-a049-abac6d8f470e | Path: /favicon.ico | Status: 404 | Time: 0.0012s
+**********************************************************
+
+2026-03-24 06:37:18,666 - INFO - ID: 564d3901-ef05-4b82-bfc7-2a47512114e3 | Method: GET | Path: /docs
+2026-03-24 06:37:18,668 - INFO - ID: 564d3901-ef05-4b82-bfc7-2a47512114e3 | Path: /docs | Status: 200 | Time: 0.0018s
+**********************************************************
+
+2026-03-24 06:37:18,791 - INFO - ID: bc0c74d0-ec97-4af8-9918-488355e9810e | Method: GET | Path: /openapi.json
+2026-03-24 06:37:18,896 - INFO - ID: bc0c74d0-ec97-4af8-9918-488355e9810e | Path: /openapi.json | Status: 200 | Time: 0.1047s
+**********************************************************
+
+2026-03-24 06:37:33,792 - INFO - ID: d14211e0-9d39-49b4-a784-faf3de0b05e6 | Method: POST | Path: /users/login
+2026-03-24 06:37:33,801 - INFO - Function Start: login | Args: () Kwargs: {'db': 'obj', 'user_repo': 'obj', 'auth_service': 'obj', 'user_in': {'email': 'jaymin4724@gmail.com', 'password': '*******'}}
+2026-03-24 06:37:34,663 - INFO - Function Success: login | Result: {'success': True, 'message': 'Login successful.', 'data': {'access_token': '*******', 'refresh_token': '*******', 'token_type': 'bearer'}}
+2026-03-24 06:37:34,665 - INFO - ID: d14211e0-9d39-49b4-a784-faf3de0b05e6 | Path: /users/login | Status: 200 | Time: 0.8718s
+**********************************************************
+
+2026-03-24 06:38:02,271 - INFO - ID: 63094dbc-175d-409d-a127-d4c46ede5b20 | Method: GET | Path: /users/profile-photo/042d427f-be5c-4786-9173-369e814b685a
+2026-03-24 06:38:02,277 - INFO - Function Start: download_photo | Args: () Kwargs: {'db': 'obj', 'user_repo': 'obj', 'user_id': '042d427f-be5c-4786-9173-369e814b685a'}
+2026-03-24 06:38:02,290 - INFO - Function Success: download_photo | Result: {'success': True, 'message': 'Pre-signed URL generated successfully.', 'data': {'download_url': 'https://amzn-todo-app-bucket.s3.amazonaws.com/profile-photos/user_042d427f-be5c-4786-9173-369e814b685a.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAZDZTB6NYBU5EXKP6%2F20260324%2Fap-south-1%2Fs3%2Faws4_request&X-Amz-Date=20260324T010802Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=5823e9eb17e7f0e5c41edc9f8325a5afc6a6b751fbf908f39a199d7af9f2576f', 'expires_in_seconds': 3600}}
+2026-03-24 06:38:02,290 - INFO - ID: 63094dbc-175d-409d-a127-d4c46ede5b20 | Path: /users/profile-photo/042d427f-be5c-4786-9173-369e814b685a | Status: 200 | Time: 0.0193s
+**********************************************************
+
+2026-03-24 06:42:59,206 - INFO - ID: 1e0da2d6-95f8-4bd1-baf9-1b94e580baab | Method: GET | Path: /users/profile-photo/042d427f-be5c-4786-9173-369e814b685a
+2026-03-24 06:42:59,217 - INFO - Function Start: download_photo | Args: () Kwargs: {'db': 'obj', 'user_repo': 'obj', 'user_id': '042d427f-be5c-4786-9173-369e814b685a'}
+2026-03-24 06:42:59,459 - INFO - Function Success: download_photo | Result: {'success': True, 'message': 'Pre-signed URL generated successfully.', 'data': {'download_url': 'https://amzn-todo-app-bucket.s3.amazonaws.com/profile-photos/user_042d427f-be5c-4786-9173-369e814b685a.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAZDZTB6NYBU5EXKP6%2F20260324%2Fap-south-1%2Fs3%2Faws4_request&X-Amz-Date=20260324T011259Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=68be8ea2094d607ec6a9291950d8c5e10c064c390c716033ac7ba89404a00795', 'expires_in_seconds': 3600}}
+2026-03-24 06:42:59,460 - INFO - ID: 1e0da2d6-95f8-4bd1-baf9-1b94e580baab | Path: /users/profile-photo/042d427f-be5c-4786-9173-369e814b685a | Status: 200 | Time: 0.2552s
+**********************************************************
+
+2026-03-24 06:48:12,804 - INFO - ID: 149cb1ba-8f21-4904-b56e-df78ccc4084b | Method: GET | Path: /docs
+2026-03-24 06:48:12,807 - INFO - ID: 149cb1ba-8f21-4904-b56e-df78ccc4084b | Path: /docs | Status: 200 | Time: 0.0031s
+**********************************************************
+
+2026-03-24 06:48:12,886 - INFO - ID: 25b2fff2-c53a-424c-a578-c8eb041b63e1 | Method: GET | Path: /docs
+2026-03-24 06:48:12,888 - INFO - ID: 25b2fff2-c53a-424c-a578-c8eb041b63e1 | Path: /docs | Status: 200 | Time: 0.0012s
+**********************************************************
+
+2026-03-24 06:48:13,016 - INFO - ID: d9a4b767-4cb8-43e7-83de-4a794e27c0c0 | Method: GET | Path: /openapi.json
+2026-03-24 06:48:13,112 - INFO - ID: d9a4b767-4cb8-43e7-83de-4a794e27c0c0 | Path: /openapi.json | Status: 200 | Time: 0.0968s
+**********************************************************
+
+2026-03-24 06:48:26,707 - INFO - ID: a1199283-c713-479d-9ec6-10440916163a | Method: POST | Path: /users/login
+2026-03-24 06:48:26,718 - INFO - Function Start: login | Args: () Kwargs: {'db': 'obj', 'user_repo': 'obj', 'auth_service': 'obj', 'user_in': {'email': 'jaymin4724@gmail.com', 'password': '*******'}}
+2026-03-24 06:48:27,699 - INFO - Function Success: login | Result: {'success': True, 'message': 'Login successful.', 'data': {'access_token': '*******', 'refresh_token': '*******', 'token_type': 'bearer'}}
+2026-03-24 06:48:27,705 - INFO - ID: a1199283-c713-479d-9ec6-10440916163a | Path: /users/login | Status: 200 | Time: 0.9981s
+**********************************************************
+
+2026-03-24 06:49:01,131 - INFO - ID: 063776fe-9c62-48e0-bf20-96fa70531e8a | Method: GET | Path: /admin/users
+2026-03-24 06:49:01,150 - INFO - Function Start: get_all_users | Args: () Kwargs: {'db': 'obj', 'admin_repo': 'obj', 'admin_dep': 'obj', 'pagination': {'page': 1, 'size': 10}}
+2026-03-24 06:49:01,162 - INFO - Function Success: get_all_users | Result: {'success': True, 'message': 'Successfully retrieved all users.', 'data': [{'email': 'jaymin.dave@armakuni.com', 'username': 'jaymin4724', 'is_active': True, 'is_admin': True, 'id': UUID('63665931-abaa-438b-81bd-f59f7fb14e96'), 'is_verified': True, 'created_at': datetime.datetime(2026, 3, 21, 14, 2, 43, 568742), 'last_updated_at': datetime.datetime(2026, 3, 21, 14, 2, 43, 568742)}, {'email': 'jaymin4724@gmail.com', 'username': 'jaymin4724', 'is_active': True, 'is_admin': True, 'id': UUID('042d427f-be5c-4786-9173-369e814b685a'), 'is_verified': True, 'created_at': datetime.datetime(2026, 3, 21, 13, 51, 55, 493216), 'last_updated_at': datetime.datetime(2026, 3, 24, 0, 55, 37, 228323)}]}
+2026-03-24 06:49:01,163 - INFO - ID: 063776fe-9c62-48e0-bf20-96fa70531e8a | Path: /admin/users | Status: 200 | Time: 0.0308s
+**********************************************************
+
+2026-03-24 06:49:14,925 - INFO - ID: 33673609-025f-427d-afc0-a4e29f07fdef | Method: GET | Path: /users/profile-photo/042d427f-be5c-4786-9173-369e814b685a
+2026-03-24 06:49:14,931 - INFO - Function Start: download_photo | Args: () Kwargs: {'db': 'obj', 'user_repo': 'obj', 'user_id': '042d427f-be5c-4786-9173-369e814b685a'}
+2026-03-24 06:49:14,943 - INFO - Function Success: download_photo | Result: {'success': True, 'message': 'Pre-signed URL generated successfully.', 'data': {'download_url': 'https://s3.ap-south-1.amazonaws.com/amzn-todo-app-bucket/profile-photos/user_042d427f-be5c-4786-9173-369e814b685a.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAZDZTB6NYBU5EXKP6%2F20260324%2Fap-south-1%2Fs3%2Faws4_request&X-Amz-Date=20260324T011914Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=fa0a4438d37d4a09b394c6fdfc7eff3b0074d0ecdbceedcc5ddb8c50541ec571', 'expires_in_seconds': 3600}}
+2026-03-24 06:49:14,944 - INFO - ID: 33673609-025f-427d-afc0-a4e29f07fdef | Path: /users/profile-photo/042d427f-be5c-4786-9173-369e814b685a | Status: 200 | Time: 0.0191s
+**********************************************************
+

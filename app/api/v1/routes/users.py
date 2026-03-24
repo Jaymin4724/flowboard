@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from fastapi import APIRouter, status, HTTPException
+from fastapi import APIRouter, status, HTTPException, UploadFile, File, Depends
 from app.api.v1.dependencies import (
     DBDep,
     RedisDep,
@@ -11,6 +11,12 @@ from app.api.v1.schemas.user import UserCreateSchema, UserInSchema, UserOutSchem
 from app.api.v1.schemas.response import ResponseSchema, create_response
 from app.core.logger import log_func
 from app.core.config import settings
+from app.service.s3_service import (
+    upload_profile_photo,
+    get_presigned_download_url,
+    delete_profile_photo,
+)
+
 import json
 from fastapi import BackgroundTasks
 
@@ -159,3 +165,53 @@ async def refresh_token(refresh_token: str, auth_service: AuthDep, redis: RedisD
     }
 
     return create_response(token_data, "Tokens rotated successfully.")
+
+
+@router.post("/profile-photo/{user_id}")
+@log_func
+async def upload_photo(
+    user_id: str,
+    db: DBDep,
+    user_repo: UserRepoDep,
+    file: UploadFile = File(...),
+):
+    user = await user_repo.get_by_id(db, user_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
+
+    if user.profile_photo_key:
+        delete_profile_photo(user.profile_photo_key)
+
+    key = await upload_profile_photo(user_id, file)
+
+    user.profile_photo_key = key
+    await db.commit()
+
+    return create_response({"s3_key": key}, "Profile photo updated successfully.")
+
+
+@router.get("/profile-photo/{user_id}")
+@log_func
+async def download_photo(
+    user_id: str,
+    db: DBDep,
+    user_repo: UserRepoDep,
+):
+    user = await user_repo.get_by_id(db, user_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
+
+    if not user.profile_photo_key:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="No profile photo set."
+        )
+
+    url = get_presigned_download_url(user.profile_photo_key)
+    return create_response(
+        {"download_url": url, "expires_in_seconds": 3600},
+        "Pre-signed URL generated successfully.",
+    )

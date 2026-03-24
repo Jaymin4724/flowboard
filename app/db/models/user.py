@@ -17,5 +17,6 @@ class UserModel(Base):
     is_active: Mapped[bool] = mapped_column(default=True)
     is_admin: Mapped[bool] = mapped_column(default=False)
     is_verified: Mapped[bool] = mapped_column(default=True)
+    profile_photo_key: Mapped[str | None] = mapped_column(String, nullable=True)
 
     items: Mapped[list["ItemModel"]] = relationship("ItemModel", back_populates="owner")
