@@ -20,7 +20,13 @@ class AdminRepository:
     ) -> Sequence[UserModel]:
         """Fetch paginated users."""
         skip = (page - 1) * size
-        result = await db.scalars(select(UserModel).offset(skip).limit(size))
+
+        result = await db.scalars(
+            select(UserModel)
+            .where(UserModel.is_active == True)
+            .offset(skip)
+            .limit(size)
+        )
         return result.all()
 
     async def get_all_detailed_items(
@@ -86,7 +92,9 @@ class AdminRepository:
             await db.refresh(item)
         return item
 
-    async def update_user(self, user_id: uuid.UUID, update_data: dict, db: AsyncSession):
+    async def update_user(
+        self, user_id: uuid.UUID, update_data: dict, db: AsyncSession
+    ):
         """Update an existing user (Partial update)."""
         user = await self.get_user_by_id(user_id, db)
         if user:
@@ -95,6 +103,16 @@ class AdminRepository:
             await db.commit()
             await db.refresh(user)
         return user
+
+    async def deactivate_user(self, user_id: uuid.UUID, db: AsyncSession):
+        """Soft delete an exisiting user."""
+        user = await self.get_user_by_id(user_id, db)
+        if user and user.is_active:
+            user.is_active = False
+
+            await db.commit()
+            await db.refresh(user)
+        return None
 
     async def delete_item(self, item_id: uuid.UUID, db: AsyncSession):
         """Remove an item from the list."""

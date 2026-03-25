@@ -7,13 +7,13 @@ from app.api.v1.schemas.item import (
     ItemCreateSchema,
     ItemUpdateSchema,
     ItemOutDetailedSchema,
-    ItemStatus,        
-    DeactivationType   
+    ItemStatus,
+    DeactivationType,
 )
 from app.api.v1.schemas.user import UserOutSchema, UserUpdateSchema
 from app.api.v1.schemas.pagination import PaginationSchema
 from app.core.logger import log_func
-import uuid 
+import uuid
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
@@ -131,9 +131,12 @@ async def update_item(
             update_data["deactivation_type"] = DeactivationType.none
 
     updated_item = await admin_repo.update_item(item_id, update_data, db)
-    updated_item_data = ItemOutSchema.model_validate(updated_item).model_dump(mode="json")
+    updated_item_data = ItemOutSchema.model_validate(updated_item).model_dump(
+        mode="json"
+    )
 
     return create_response(updated_item_data, "Item updated successfully.")
+
 
 @router.patch(
     "/users/{user_id}",
@@ -161,6 +164,31 @@ async def update_user(
 
     return create_response(updated_user_data, "User updated successfully.")
 
+
+@router.delete(
+    "/users/{user_id}",
+    status_code=status.HTTP_200_OK,
+    response_model=ResponseSchema,
+)
+@log_func
+async def delete_user(
+    user_id: uuid.UUID,
+    user: UserUpdateSchema,
+    db: DBDep,
+    admin_repo: AdminRepoDep,
+    admin_dep: AdminDep,
+):
+    """Soft delete a user by setting is_active to False."""
+    user = await admin_repo.deactivate_user(user_id=user_id, db=db)
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found or already deleted",
+        )
+
+    user_data = UserOutSchema.model_validate(user).model_dump()
+    return create_response(user_data, "User successfully soft-deleted.")
 
 @router.delete(
     "/items/{item_id}",
