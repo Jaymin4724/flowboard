@@ -1,0 +1,126 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: tododb
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - app-network
+
+  migrate:
+    build:
+      context: .
+    env_file:
+      - .env.docker
+    working_dir: /app
+    volumes:
+      - .:/app
+      - venv_data:/app/.venv
+    command: /app/.venv/bin/alembic upgrade head
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - app-network
+    restart: "no"
+
+  fastapi-app:
+    build:
+      context: .
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env.docker
+    volumes:
+      - .:/app                    
+      - venv_data:/app/.venv      
+    command: /app/.venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  celery-worker:
+    build:
+      context: .
+    env_file:
+      - .env.docker
+    volumes:
+      - .:/app
+      - venv_data:/app/.venv
+    command: /app/.venv/bin/celery -A app.worker.celery_app.celery_app worker --loglevel=info
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  celery-beat:
+    build:
+      context: .
+    env_file:
+      - .env.docker
+    volumes:
+      - .:/app
+      - venv_data:/app/.venv
+    command: /app/.venv/bin/celery -A app.worker.celery_app.celery_app beat --loglevel=info
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  flower:
+    build:
+      context: .
+    env_file:
+      - .env.docker
+    ports:
+      - "5555:5555"
+    volumes:
+      - venv_data:/app/.venv
+    command: /app/.venv/bin/celery -A app.worker.celery_app.celery_app flower --port=5555
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - app-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  venv_data:
+
+networks:
+  app-network:
+    driver: bridge

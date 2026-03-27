@@ -16,8 +16,7 @@ class Settings(BaseSettings):
 
     REDIS_HOST: str
     REDIS_PORT: int = 6379
-    REDIS_URL: str = f"redis://localhost:{REDIS_PORT}/0"
-
+    REDIS_URL: str
     MAIL_USERNAME: EmailStr
     MAIL_PASSWORD: str
     MAIL_FROM: str
