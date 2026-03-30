@@ -1,13 +1,46 @@
-# Python-generated files
+# ========== PYTHON ==========
 __pycache__/
+*.pyc
+*.pyo
+*.pyd
 *.py[oc]
+
+# ========== BUILD ==========
 build/
 dist/
 wheels/
-*.egg-info
+*.egg-info/
 
-# Virtual environments
-.venv
+# ========== VIRTUAL ENV ==========
+.venv/
 
+# ========== ENV FILES ==========
 .env
 .env.*
+!.env.example
+
+# ========== LOGS ==========
+logs/
+app/logs/
+app/logs/*.txt
+*.log
+
+# ========== TEST ==========
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ========== CELERY ==========
+celerybeat-schedule*
+celerybeat.pid
+
+# ========== IDE ==========
+.vscode/
+.idea/
+
+# ========== SYSTEM ==========
+.DS_Store
+Thumbs.db
+
+# ========== MISC ==========
+*.swp
