@@ -1,6 +1,8 @@
 import json
 import pytest
 from fastapi import status
+from sqlalchemy import select
+from app.db.models.user import UserModel
 from tests.test_utils import (
     assert_response_structure,
     create_admin_data,
@@ -11,8 +13,9 @@ from tests.conftest import global_fake_redis
 
 
 @pytest.fixture
-async def auth_client(client):
-    """Register, verify, and log in a user to return a client with a valid auth header."""
+async def auth_client(client, db):
+    """Register, verify, and log in a user, then promote to admin directly in the
+    DB (there is no API path to set is_admin, by design)."""
     user_data = create_admin_data()
     email = user_data["email"]
 
@@ -23,6 +26,10 @@ async def auth_client(client):
     otp = pending_user["otp"]
 
     await client.post(f"/users/verify-otp?email={email}&otp={otp}")
+
+    user = await db.scalar(select(UserModel).where(UserModel.email == email))
+    user.is_admin = True
+    await db.commit()
 
     login_data = {"email": email, "password": user_data["password"]}
     response = await client.post("/users/login", json=login_data)

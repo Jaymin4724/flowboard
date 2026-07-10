@@ -42,6 +42,11 @@ class AdminRepository:
                 ItemModel.status,
                 ItemModel.remind_me_at,
                 ItemModel.owner_id,
+                ItemModel.reminded,
+                ItemModel.dispatched,
+                ItemModel.deactivation_type,
+                ItemModel.created_at,
+                ItemModel.last_updated_at,
                 UserModel.username,
                 UserModel.email,
             )
@@ -107,12 +112,13 @@ class AdminRepository:
     async def deactivate_user(self, user_id: uuid.UUID, db: AsyncSession):
         """Soft delete an exisiting user."""
         user = await self.get_user_by_id(user_id, db)
-        if user and user.is_active:
+        if not user:
+            return None
+        if user.is_active:
             user.is_active = False
-
             await db.commit()
             await db.refresh(user)
-        return None
+        return user
 
     async def delete_item(self, item_id: uuid.UUID, db: AsyncSession):
         """Remove an item from the list."""
