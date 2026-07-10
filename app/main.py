@@ -4,7 +4,7 @@ from app.middleware.logging_middleware import log_requests_middleware
 from app.middleware.rate_limitting_middleware import rate_limitter_middleware
 from app.api.v1.schemas.response import ResponseSchema, create_response
 
-app = FastAPI()
+app = FastAPI(title="FlowBoard", description="Scalable Task Management Platform")
 
 app.middleware("http")(rate_limitter_middleware)
 app.middleware("http")(log_requests_middleware)

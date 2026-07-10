@@ -1,46 +1,69 @@
-# ========== PYTHON ==========
+# Python
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
-*.py[oc]
+*.py[cod]
+*$py.class
 
-# ========== BUILD ==========
-build/
-dist/
-wheels/
-*.egg-info/
-
-# ========== VIRTUAL ENV ==========
+# Virtual Environments
 .venv/
+venv/
+env/
 
-# ========== ENV FILES ==========
+# Environment
 .env
 .env.*
 !.env.example
 
-# ========== LOGS ==========
+# Logs
+*.log
 logs/
 app/logs/
-app/logs/*.txt
-*.log
 
-# ========== TEST ==========
+# Testing
 .pytest_cache/
 .coverage
+coverage.xml
 htmlcov/
 
-# ========== CELERY ==========
-celerybeat-schedule*
-celerybeat.pid
+# Build
+build/
+dist/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
 
-# ========== IDE ==========
+# Type Checking
+.mypy_cache/
+.pyright/
+.pyre/
+
+# Linting
+.ruff_cache/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# SQLite
+*.db
+*.sqlite3
+
+# Docker
+docker-compose.override.yml
+
+# IDE
 .vscode/
 .idea/
 
-# ========== SYSTEM ==========
+# OS
 .DS_Store
 Thumbs.db
 
-# ========== MISC ==========
+# Temp
 *.swp
+*.swo
+
+# Celery
+celerybeat-schedule*
+celerybeat.pid
+
+pitch.txt
+tasks.md
