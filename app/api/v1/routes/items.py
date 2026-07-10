@@ -83,6 +83,10 @@ async def update_item(
         else:
             update_data["deactivation_type"] = DeactivationType.none
 
+    if "remind_me_at" in update_data:
+        update_data["reminded"] = False
+        update_data["dispatched"] = False
+
     updated_item = await item_repo.update(item_id, update_data, db)
     updated_item_data = ItemOutSchema.model_validate(updated_item).model_dump(
         mode="json"

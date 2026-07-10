@@ -1,6 +1,9 @@
 import json
+import uuid
 import pytest
+from datetime import datetime, timedelta, timezone
 from fastapi import status
+from app.db.models.item import ItemModel
 from tests.test_utils import (
     assert_response_structure,
     create_user_data,
@@ -97,3 +100,24 @@ class TestItem:
         assert body["message"] == "Item removed successfully."
         assert body["data"]["title"] == item_details["title"]
         assert body["data"]["desc"] == item_details["desc"]
+
+    async def test_update_item_remind_at_resets_stale_flags(self, auth_client, db):
+        """PATCHing remind_me_at must clear stale reminded/dispatched flags."""
+        item_details = create_item_data()
+        response = await auth_client.post("/items/", json=item_details)
+        item_id = response.json()["data"]["id"]
+
+        item = await db.get(ItemModel, uuid.UUID(item_id))
+        item.reminded = True
+        item.dispatched = True
+        await db.commit()
+
+        remind_at = (datetime.now(timezone.utc) + timedelta(days=1)).isoformat()
+        response = await auth_client.patch(
+            f"/items/{item_id}", json={"remind_me_at": remind_at}
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+        body = response.json()
+        assert body["data"]["reminded"] is False
+        assert body["data"]["dispatched"] is False

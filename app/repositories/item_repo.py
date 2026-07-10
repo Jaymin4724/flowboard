@@ -55,8 +55,12 @@ class ItemRepository:
         if item:
             for key, value in update_data.items():
                 setattr(item, key, value)
-            await db.commit()
-            await db.refresh(item)
+            try:
+                await db.commit()
+                await db.refresh(item)
+            except Exception as e:
+                await db.rollback()
+                raise e
         return item
 
     async def delete(self, item_id: uuid.UUID, db: AsyncSession) -> Optional[ItemModel]:
