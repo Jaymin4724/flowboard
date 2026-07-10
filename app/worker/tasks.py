@@ -56,7 +56,8 @@ def execute_reminder_email(self, item_id: str):
                 subject=f"Reminder: {item.title}",
                 body=f"This is a reminder for your task: {item.title}",
             )
-            item.reminded = True
+            item.remind_me_at = None
+            item.reminded = False
             item.dispatched = False
             await db.commit()
 

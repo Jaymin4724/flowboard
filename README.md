@@ -35,7 +35,7 @@ This launches: PostgreSQL, Redis, FastAPI app (port 8000), Celery worker, Celery
 
 - **User Authentication** — Register with email OTP verification, login with JWT access/refresh tokens
 - **Item Management** — Create, update, delete, and list tasks with status workflow (pending → running → completed → deactivated)
-- **Smart Reminders** — Set per-item reminders dispatched via Celery beat + ETA tasks; completed items are auto-deactivated weekly
+- **Smart Reminders** — Set per-item reminders dispatched via Celery beat + ETA tasks; once the reminder email fires, `remind_me_at`/`reminded`/`dispatched` all clear back to their unset state; completed items are auto-deactivated weekly
 - **Profile Photos** — Upload/download via AWS S3 with presigned URLs
 - **Admin Panel** — Manage all users and items, promote admins, deactivate users
 - **Rate Limiting** — Sliding-window per-IP rate limiter via Redis
