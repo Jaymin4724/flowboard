@@ -8,7 +8,6 @@ class UserBaseSchema(BaseModel):
     email: EmailStr
     username: str = Field(..., min_length=3, max_length=50)
     is_active: bool = True
-    is_admin: bool = False
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -35,6 +34,11 @@ class UserInSchema(BaseModel):
 
 class UserUpdateSchema(BaseModel):
     is_active: Optional[bool] = None
-    is_admin: Optional[bool] = None
     is_verified: Optional[bool] = None
     profile_photo_key: Optional[str] = None
+
+
+class UserUpdateMeSchema(BaseModel):
+    username: Optional[str] = Field(None, min_length=3, max_length=50)
+    email: Optional[EmailStr] = None
+    password: Optional[str] = Field(None, min_length=8, description="Plain text password")

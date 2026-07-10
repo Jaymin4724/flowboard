@@ -6,8 +6,14 @@ from app.api.v1.dependencies import (
     UserRepoDep,
     AuthDep,
     EmailDep,
+    CurrentUserDep,
 )
-from app.api.v1.schemas.user import UserCreateSchema, UserInSchema, UserOutSchema
+from app.api.v1.schemas.user import (
+    UserCreateSchema,
+    UserInSchema,
+    UserOutSchema,
+    UserUpdateMeSchema,
+)
 from app.api.v1.schemas.response import ResponseSchema, create_response
 from app.core.logger import log_func
 from app.core.config import settings
@@ -115,6 +121,16 @@ async def login(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials"
         )
 
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Account is deactivated"
+        )
+
+    if not user.is_verified:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Account is not verified"
+        )
+
     # Generate both tokens
     access_token = auth_service.create_access_token(data={"sub": str(user.id)})
     refresh_token = auth_service.create_refresh_token(data={"sub": str(user.id)})
@@ -129,7 +145,13 @@ async def login(
 
 @router.post("/refresh", response_model=ResponseSchema)
 @log_func
-async def refresh_token(refresh_token: str, auth_service: AuthDep, redis: RedisDep):
+async def refresh_token(
+    refresh_token: str,
+    auth_service: AuthDep,
+    redis: RedisDep,
+    db: DBDep,
+    user_repo: UserRepoDep,
+):
     """Swap an old refresh token for a brand-new access AND refresh token."""
 
     payload = auth_service.decode_token(refresh_token, is_refresh=True)
@@ -147,6 +169,13 @@ async def refresh_token(refresh_token: str, auth_service: AuthDep, redis: RedisD
         )
 
     user_id = payload.get("sub")
+
+    user = await user_repo.get_by_id(db, user_id)
+    if not user or not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found or inactive",
+        )
 
     new_access_token = auth_service.create_access_token(data={"sub": user_id})
     new_refresh_token = auth_service.create_refresh_token(data={"sub": user_id})
@@ -167,12 +196,96 @@ async def refresh_token(refresh_token: str, auth_service: AuthDep, redis: RedisD
     return create_response(token_data, "Tokens rotated successfully.")
 
 
+@router.post("/logout", response_model=ResponseSchema)
+@log_func
+async def logout(
+    refresh_token: str,
+    auth_service: AuthDep,
+    redis: RedisDep,
+    access_token: str | None = None,
+):
+    """Blacklist a refresh token (and optionally its paired access token) to log the user out."""
+
+    payload = auth_service.decode_token(refresh_token, is_refresh=True)
+    if not payload or payload.get("type") != "refresh":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired refresh token",
+        )
+
+    now = datetime.now(timezone.utc).timestamp()
+
+    ttl = int(payload.get("exp") - now)
+    if ttl > 0:
+        await redis.set(f"blacklist:{refresh_token}", "used", ex=ttl)
+
+    if access_token:
+        access_payload = auth_service.decode_token(access_token)
+        if access_payload:
+            access_ttl = int(access_payload.get("exp") - now)
+            if access_ttl > 0:
+                await redis.set(f"blacklist:{access_token}", "used", ex=access_ttl)
+
+    return create_response(None, "Logged out successfully.")
+
+
+@router.get("/me", response_model=ResponseSchema)
+@log_func
+async def get_me(current_user: CurrentUserDep):
+    """Return the authenticated user's own profile."""
+    user_out = UserOutSchema.model_validate(current_user).model_dump(mode="json")
+    return create_response(user_out, "User profile fetched successfully.")
+
+
+@router.patch("/me", response_model=ResponseSchema)
+@log_func
+async def update_me(
+    user_in: UserUpdateMeSchema,
+    db: DBDep,
+    user_repo: UserRepoDep,
+    auth_service: AuthDep,
+    current_user: CurrentUserDep,
+):
+    """Update the authenticated user's own username, email, and/or password."""
+    update_data = user_in.model_dump(exclude_unset=True, exclude_none=True)
+
+    if "email" in update_data and update_data["email"] != current_user.email:
+        if await user_repo.get_by_email(db, update_data["email"]):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Email already registered",
+            )
+
+    if "password" in update_data:
+        update_data["hashed_password"] = auth_service.hash_password(
+            update_data.pop("password")
+        )
+
+    updated_user = await user_repo.update(db, current_user, update_data)
+    user_out = UserOutSchema.model_validate(updated_user).model_dump(mode="json")
+    return create_response(user_out, "Profile updated successfully.")
+
+
+@router.delete("/me", response_model=ResponseSchema)
+@log_func
+async def delete_me(
+    db: DBDep,
+    user_repo: UserRepoDep,
+    current_user: CurrentUserDep,
+):
+    """Deactivate (soft-delete) the authenticated user's own account."""
+    updated_user = await user_repo.delete(db, current_user)
+    user_out = UserOutSchema.model_validate(updated_user).model_dump(mode="json")
+    return create_response(user_out, "Account deactivated successfully.")
+
+
 @router.post("/profile-photo/{user_id}")
 @log_func
 async def upload_photo(
     user_id: str,
     db: DBDep,
     user_repo: UserRepoDep,
+    current_user: CurrentUserDep,
     file: UploadFile = File(...),
 ):
     user = await user_repo.get_by_id(db, user_id)
@@ -192,12 +305,39 @@ async def upload_photo(
     return create_response({"s3_key": key}, "Profile photo updated successfully.")
 
 
+@router.delete("/profile-photo/{user_id}")
+@log_func
+async def delete_photo(
+    user_id: str,
+    db: DBDep,
+    user_repo: UserRepoDep,
+    current_user: CurrentUserDep,
+):
+    user = await user_repo.get_by_id(db, user_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
+
+    if not user.profile_photo_key:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="No profile photo set."
+        )
+
+    delete_profile_photo(user.profile_photo_key)
+    user.profile_photo_key = None
+    await db.commit()
+
+    return create_response(None, "Profile photo deleted successfully.")
+
+
 @router.get("/profile-photo/{user_id}")
 @log_func
 async def download_photo(
     user_id: str,
     db: DBDep,
     user_repo: UserRepoDep,
+    current_user: CurrentUserDep,
 ):
     user = await user_repo.get_by_id(db, user_id)
     if not user:

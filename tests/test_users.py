@@ -1,5 +1,7 @@
 import json
+import uuid
 from fastapi import status
+from app.db.models.user import UserModel
 from tests.test_utils import assert_response_structure, create_user_data
 from tests.conftest import global_fake_redis
 
@@ -108,3 +110,65 @@ class TestUser:
         response = await client.post(f"/users/refresh?refresh_token={token}")
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
         assert response.json()["detail"] == "Token has already been used"
+
+    async def test_refresh_token_inactive_user_failure(self, client):
+        """Deactivate the user after login and confirm their refresh token stops working."""
+        user_details = create_user_data(email="deactivated-refresh@gmail.com")
+        email = user_details["email"]
+
+        # Register and Login
+        await client.post("/users/register", json=user_details)
+        otp = json.loads(await global_fake_redis.get(f"pending_user:{email}"))["otp"]
+        await client.post(f"/users/verify-otp?email={email}&otp={otp}")
+
+        login_res = await client.post(
+            "/users/login", json={"email": email, "password": user_details["password"]}
+        )
+        tokens = login_res.json()["data"]
+
+        # Deactivate the account
+        client.headers.update({"Authorization": f"Bearer {tokens['access_token']}"})
+        await client.delete("/users/me")
+
+        # Refresh must now fail
+        response = await client.post(
+            f"/users/refresh?refresh_token={tokens['refresh_token']}"
+        )
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert response.json()["detail"] == "User not found or inactive"
+
+    async def test_delete_profile_photo_success(self, client, db, monkeypatch):
+        """Set a profile photo directly in the DB, then confirm the DELETE endpoint clears it."""
+        monkeypatch.setattr(
+            "app.api.v1.routes.users.delete_profile_photo", lambda key: None
+        )
+
+        user_details = create_user_data(email="photo-delete@gmail.com")
+        email = user_details["email"]
+
+        await client.post("/users/register", json=user_details)
+        otp = json.loads(await global_fake_redis.get(f"pending_user:{email}"))["otp"]
+        await client.post(f"/users/verify-otp?email={email}&otp={otp}")
+
+        login_res = await client.post(
+            "/users/login", json={"email": email, "password": user_details["password"]}
+        )
+        tokens = login_res.json()["data"]
+        client.headers.update({"Authorization": f"Bearer {tokens['access_token']}"})
+
+        me_res = await client.get("/users/me")
+        user_id = me_res.json()["data"]["id"]
+
+        user = await db.get(UserModel, uuid.UUID(user_id))
+        user.profile_photo_key = "profile-photos/user_test.png"
+        await db.commit()
+
+        response = await client.delete(f"/users/profile-photo/{user_id}")
+        assert response.status_code == status.HTTP_200_OK
+
+        body = response.json()
+        assert_response_structure(body)
+        assert body["message"] == "Profile photo deleted successfully."
+
+        await db.refresh(user)
+        assert user.profile_photo_key is None
