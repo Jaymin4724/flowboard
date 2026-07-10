@@ -12,8 +12,6 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-    networks:
-      - app-network
 
   redis:
     image: redis:7-alpine
@@ -22,15 +20,11 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
-    networks:
-      - app-network
 
   migrate:
-    build:
-      context: .
+    build: .
     env_file:
       - .env.docker
-    working_dir: /app
     volumes:
       - .:/app
       - venv_data:/app/.venv
@@ -38,20 +32,17 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    networks:
-      - app-network
     restart: "no"
 
   fastapi-app:
-    build:
-      context: .
+    build: .
     ports:
       - "8000:8000"
     env_file:
       - .env.docker
     volumes:
-      - .:/app                    
-      - venv_data:/app/.venv      
+      - .:/app
+      - venv_data:/app/.venv
     command: /app/.venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     depends_on:
       postgres:
@@ -60,13 +51,10 @@ services:
         condition: service_healthy
       migrate:
         condition: service_completed_successfully
-    networks:
-      - app-network
     restart: unless-stopped
 
   celery-worker:
-    build:
-      context: .
+    build: .
     env_file:
       - .env.docker
     volumes:
@@ -74,17 +62,14 @@ services:
       - venv_data:/app/.venv
     command: /app/.venv/bin/celery -A app.worker.celery_app.celery_app worker --loglevel=info
     depends_on:
-      redis:
-        condition: service_healthy
       postgres:
         condition: service_healthy
-    networks:
-      - app-network
+      redis:
+        condition: service_healthy
     restart: unless-stopped
 
   celery-beat:
-    build:
-      context: .
+    build: .
     env_file:
       - .env.docker
     volumes:
@@ -92,35 +77,26 @@ services:
       - venv_data:/app/.venv
     command: /app/.venv/bin/celery -A app.worker.celery_app.celery_app beat --loglevel=info
     depends_on:
-      redis:
-        condition: service_healthy
       postgres:
         condition: service_healthy
-    networks:
-      - app-network
+      redis:
+        condition: service_healthy
     restart: unless-stopped
 
   flower:
-    build:
-      context: .
-    env_file:
-      - .env.docker
+    build: .
     ports:
       - "5555:5555"
+    env_file:
+      - .env.docker
     volumes:
       - venv_data:/app/.venv
     command: /app/.venv/bin/celery -A app.worker.celery_app.celery_app flower --port=5555
     depends_on:
       redis:
         condition: service_healthy
-    networks:
-      - app-network
     restart: unless-stopped
 
 volumes:
   postgres_data:
   venv_data:
-
-networks:
-  app-network:
-    driver: bridge
