@@ -121,3 +121,102 @@ class TestItem:
         body = response.json()
         assert body["data"]["reminded"] is False
         assert body["data"]["dispatched"] is False
+
+    async def test_get_items_success(self, auth_client):
+        """List the current user's items and confirm both created items are returned."""
+        await auth_client.post("/items/", json=create_item_data(title="item-one"))
+        await auth_client.post("/items/", json=create_item_data(title="item-two"))
+
+        response = await auth_client.get("/items/?page=1&size=10")
+        assert response.status_code == status.HTTP_200_OK
+
+        body = response.json()
+        assert_response_structure(body)
+        assert body["message"] == "Successfully retrieved all items."
+        assert len(body["data"]) == 2
+
+    async def test_get_items_invalid_pagination_error(self, auth_client):
+        """Request an out-of-range page size to confirm pagination validation kicks in."""
+        response = await auth_client.get("/items/?page=1&size=0")
+        assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
+        assert isinstance(response.json()["detail"], list)
+
+    async def test_edit_item_not_owner_error(self, auth_client):
+        """Try editing another user's item to confirm ownership is enforced."""
+        item_details = create_item_data()
+        response = await auth_client.post("/items/", json=item_details)
+        item_id = response.json()["data"]["id"]
+
+        other_user = create_user_data(email="not-owner-edit@gmail.com")
+        email = other_user["email"]
+        await auth_client.post("/users/register", json=other_user)
+        otp = json.loads(
+            await global_fake_redis.get(f"pending_user:{email}")
+        )["otp"]
+        await auth_client.post(f"/users/verify-otp?email={email}&otp={otp}")
+
+        login_res = await auth_client.post(
+            "/users/login", json={"email": email, "password": other_user["password"]}
+        )
+        tokens = login_res.json()["data"]
+        auth_client.headers.update({"Authorization": f"Bearer {tokens['access_token']}"})
+
+        response = await auth_client.patch(
+            f"/items/{item_id}", json={"title": "hijacked"}
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.json()["detail"] == "Not authorized to edit this item"
+
+    async def test_delete_item_not_owner_error(self, auth_client):
+        """Try deleting another user's item to confirm ownership is enforced."""
+        item_details = create_item_data()
+        response = await auth_client.post("/items/", json=item_details)
+        item_id = response.json()["data"]["id"]
+
+        other_user = create_user_data(email="not-owner-delete@gmail.com")
+        email = other_user["email"]
+        await auth_client.post("/users/register", json=other_user)
+        otp = json.loads(
+            await global_fake_redis.get(f"pending_user:{email}")
+        )["otp"]
+        await auth_client.post(f"/users/verify-otp?email={email}&otp={otp}")
+
+        login_res = await auth_client.post(
+            "/users/login", json={"email": email, "password": other_user["password"]}
+        )
+        tokens = login_res.json()["data"]
+        auth_client.headers.update({"Authorization": f"Bearer {tokens['access_token']}"})
+
+        response = await auth_client.delete(f"/items/{item_id}")
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.json()["detail"] == "Not authorized to delete this item"
+
+    async def test_schedule_item_reminder_success(self, auth_client):
+        """Schedule a reminder for a future time and confirm it's saved on the item."""
+        item_details = create_item_data()
+        response = await auth_client.post("/items/", json=item_details)
+        item_id = response.json()["data"]["id"]
+
+        remind_at = (datetime.now(timezone.utc) + timedelta(days=1)).isoformat()
+        response = await auth_client.post(
+            f"/items/remind/{item_id}", json={"remind_at": remind_at}
+        )
+        assert response.status_code == status.HTTP_202_ACCEPTED
+
+        body = response.json()
+        assert_response_structure(body)
+        assert body["message"].startswith("Reminder saved for")
+        assert body["data"]["remind_me_at"] is not None
+
+    async def test_schedule_item_reminder_past_time_error(self, auth_client):
+        """Try scheduling a reminder in the past to confirm it's rejected."""
+        item_details = create_item_data()
+        response = await auth_client.post("/items/", json=item_details)
+        item_id = response.json()["data"]["id"]
+
+        remind_at = (datetime.now(timezone.utc) - timedelta(days=1)).isoformat()
+        response = await auth_client.post(
+            f"/items/remind/{item_id}", json={"remind_at": remind_at}
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.json()["detail"] == "Reminder time must be in the future"

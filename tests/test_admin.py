@@ -1,4 +1,5 @@
 import json
+import uuid
 import pytest
 from fastapi import status
 from sqlalchemy import select
@@ -6,6 +7,7 @@ from app.db.models.user import UserModel
 from tests.test_utils import (
     assert_response_structure,
     create_admin_data,
+    create_user_data,
     create_item_data,
     update_item_data,
 )
@@ -158,3 +160,121 @@ class TestAdmin:
         )
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert response.json()["detail"] == "User not found"
+
+    async def test_get_all_items_non_admin_forbidden_error(self, client):
+        """Confirm a non-admin user is rejected from the admin items list."""
+        user_data = create_user_data(email="non-admin-items@gmail.com")
+        email = user_data["email"]
+        await client.post("/users/register", json=user_data)
+        otp = json.loads(await global_fake_redis.get(f"pending_user:{email}"))["otp"]
+        await client.post(f"/users/verify-otp?email={email}&otp={otp}")
+
+        login_res = await client.post(
+            "/users/login", json={"email": email, "password": user_data["password"]}
+        )
+        tokens = login_res.json()["data"]
+        client.headers.update({"Authorization": f"Bearer {tokens['access_token']}"})
+
+        response = await client.get("/admin/items?page=1&size=10")
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert response.json()["detail"] == "Could not validate admin credentials"
+
+    async def test_get_detailed_items_success(self, auth_client):
+        """Verify the admin can retrieve items joined with their owner's details."""
+        await auth_client.post("/admin/items", json=create_item_data())
+
+        response = await auth_client.get("/admin/items/detailed?page=1&size=10")
+        assert response.status_code == status.HTTP_200_OK
+
+        body = response.json()
+        assert_response_structure(body)
+        assert body["message"] == "Successfully retrieved items with user details."
+        assert body["data"][0]["username"] == "test-admin"
+        assert body["data"][0]["email"] == "test-admin@gmail.com"
+
+    async def test_get_detailed_items_non_admin_forbidden_error(self, client):
+        """Confirm a non-admin user is rejected from the detailed admin items list."""
+        user_data = create_user_data(email="non-admin-detailed@gmail.com")
+        email = user_data["email"]
+        await client.post("/users/register", json=user_data)
+        otp = json.loads(await global_fake_redis.get(f"pending_user:{email}"))["otp"]
+        await client.post(f"/users/verify-otp?email={email}&otp={otp}")
+
+        login_res = await client.post(
+            "/users/login", json={"email": email, "password": user_data["password"]}
+        )
+        tokens = login_res.json()["data"]
+        client.headers.update({"Authorization": f"Bearer {tokens['access_token']}"})
+
+        response = await client.get("/admin/items/detailed?page=1&size=10")
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert response.json()["detail"] == "Could not validate admin credentials"
+
+    async def test_get_all_users_non_admin_forbidden_error(self, client):
+        """Confirm a non-admin user is rejected from the admin users list."""
+        user_data = create_user_data(email="non-admin-users@gmail.com")
+        email = user_data["email"]
+        await client.post("/users/register", json=user_data)
+        otp = json.loads(await global_fake_redis.get(f"pending_user:{email}"))["otp"]
+        await client.post(f"/users/verify-otp?email={email}&otp={otp}")
+
+        login_res = await client.post(
+            "/users/login", json={"email": email, "password": user_data["password"]}
+        )
+        tokens = login_res.json()["data"]
+        client.headers.update({"Authorization": f"Bearer {tokens['access_token']}"})
+
+        response = await client.get("/admin/users?page=1&size=10")
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert response.json()["detail"] == "Could not validate admin credentials"
+
+    async def test_edit_item_not_found_error(self, auth_client):
+        """Ensure a 404 is returned when updating a non-existent item."""
+        random_id = str(uuid.uuid4())
+
+        response = await auth_client.patch(
+            f"/admin/items/{random_id}", json=update_item_data()
+        )
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json()["detail"] == "Item not found"
+
+    async def test_delete_item_not_found_error(self, auth_client):
+        """Ensure a 404 is returned when deleting a non-existent item."""
+        random_id = str(uuid.uuid4())
+
+        response = await auth_client.delete(f"/admin/items/{random_id}")
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json()["detail"] == "Item not found"
+
+    async def test_delete_user_success(self, auth_client):
+        """Soft-delete another user's account and confirm it's deactivated."""
+        target_user = create_user_data(email="delete-target@gmail.com")
+        email = target_user["email"]
+        await auth_client.post("/users/register", json=target_user)
+        otp = json.loads(await global_fake_redis.get(f"pending_user:{email}"))["otp"]
+        await auth_client.post(f"/users/verify-otp?email={email}&otp={otp}")
+
+        users_resp = await auth_client.get("/admin/users?page=1&size=50")
+        target = next(
+            u for u in users_resp.json()["data"] if u["email"] == email
+        )
+
+        response = await auth_client.request(
+            "DELETE", f"/admin/users/{target['id']}", json={}
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+        body = response.json()
+        assert_response_structure(body)
+        assert body["message"] == "User successfully soft-deleted."
+        assert body["data"]["is_active"] is False
+
+    async def test_delete_user_not_found_error(self, auth_client):
+        """Ensure a 404 is returned when deleting a non-existent user."""
+        random_id = str(uuid.uuid4())
+
+        response = await auth_client.request(
+            "DELETE", f"/admin/users/{random_id}", json={}
+        )
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json()["detail"] == "User not found or already deleted"
