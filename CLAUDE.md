@@ -20,6 +20,9 @@ celery -A app.worker.celery_app.celery_app beat --loglevel=info
 
 # Start Flower (Celery monitoring UI)
 celery -A app.worker.celery_app.celery_app flower --port=5555
+
+# Start Streamlit frontend (run from repo root)
+streamlit run frontend/app.py
 ```
 
 **Database:**
@@ -57,6 +60,7 @@ docker compose up -d --build            # Rebuild and start
 ```bash
 uv sync                    # Install dependencies
 uv sync --frozen           # Install from lock (CI/Docker)
+uv sync --extra frontend   # Also install the Streamlit frontend's dependencies
 ```
 
 ## Architecture
@@ -74,35 +78,36 @@ uv sync --frozen           # Install from lock (CI/Docker)
 - **Logging**: `@log_func` (`app/core/logger.py`) wraps route handlers to log entry/exit/errors to `app/logs/application_logs.txt`, auto-masking sensitive fields via `app/utils/mask_sensitive_data.py`. `logging_middleware.py` separately logs every request/response with a request ID and timing header.
 - **Testing** (`tests/conftest.py`): overrides `get_db` with a per-test transactional session that's rolled back after each test, `get_redis` with a single shared in-process `FakeRedis` instance across the whole test session (flushed after each test), and `EmailService` with an `AsyncMock`. Tests run against `TEST_DB_URL` (a real Postgres DB, not sqlite).
 - **Docker Compose services**: `postgres`, `redis`, a one-shot `migrate` service (runs `alembic upgrade head`, must complete before `fastapi-app` starts), `fastapi-app`, `celery-worker`, `celery-beat`, `flower`. All share `.env.docker` and an `app-network` bridge network.
+- **Streamlit frontend** (`frontend/`, optional install via `uv sync --extra frontend`): a separate multipage app that talks to the API over `httpx` (server-to-server, so no CORS is needed on the backend). Auth tokens live only in `st.session_state` (`frontend/auth/session.py`) — **there is no cross-page-reload persistence**; a browser refresh starts a brand-new Streamlit session and logs the user out by design (an earlier cookie-based persistence attempt was removed as unreliable — see git history if revisiting this). Within a live session, `frontend/api/client.py` still silently refreshes an expired access token using the in-memory refresh token on a `401` before giving up. Since `UserOutSchema` doesn't expose `is_admin`, the Admin nav entry is shown/hidden based on probing `GET /admin/items` once per session (`frontend/api/admin.py:probe_is_admin()`). `frontend/app.py` is the entrypoint, building the page list with `st.Page`/`st.navigation`.
 
 ## API Endpoints
 
-| Prefix     | Endpoint                     | Method | Auth  | Description                          |
-| ---------- | ----------------------------- | ------ | ----- | ------------------------------------- |
-| `/`        | `/`                            | GET    | No    | Health check                          |
-| `/users`   | `/register`                    | POST   | No    | Initiate registration (sends OTP)     |
-| `/users`   | `/verify-otp`                  | POST   | No    | Verify OTP to complete registration   |
-| `/users`   | `/login`                       | POST   | No    | Login → access + refresh tokens      |
-| `/users`   | `/refresh`                     | POST   | No    | Rotate access + refresh tokens        |
-| `/users`   | `/logout`                      | POST   | No*   | Blacklist refresh (+ access) token    |
-| `/users`   | `/me`                          | GET    | Yes   | Get own profile                       |
-| `/users`   | `/me`                          | PATCH  | Yes   | Update own username/email/password    |
-| `/users`   | `/me`                          | DELETE | Yes   | Deactivate own account (soft delete)  |
-| `/users`   | `/profile-photo/{user_id}`     | POST   | Yes   | Upload profile photo to S3            |
-| `/users`   | `/profile-photo/{user_id}`     | GET    | Yes   | Get presigned S3 URL                  |
-| `/items`   | `/`                             | GET    | Yes   | List own items (paginated)            |
-| `/items`   | `/`                             | POST   | Yes   | Create item                           |
-| `/items`   | `/{item_id}`                   | PATCH  | Yes   | Update item (partial, ownership-checked) |
-| `/items`   | `/{item_id}`                   | DELETE | Yes   | Delete item (ownership-checked)       |
-| `/items`   | `/remind/{item_id}`            | POST   | Yes   | Set reminder (schedules Celery task)  |
-| `/admin`   | `/items`                       | GET    | Admin | List all items (paginated)            |
-| `/admin`   | `/items/detailed`              | GET    | Admin | List all items with owner username/email |
-| `/admin`   | `/users`                       | GET    | Admin | List all active users (paginated)     |
-| `/admin`   | `/items`                       | POST   | Admin | Create item for admin's own user      |
-| `/admin`   | `/items/{item_id}`             | PATCH  | Admin | Update any item                       |
-| `/admin`   | `/items/{item_id}`             | DELETE | Admin | Delete any item                       |
-| `/admin`   | `/users/{user_id}`             | PATCH  | Admin | Update any user (`is_active`, `is_verified`, `profile_photo_key`) |
-| `/admin`   | `/users/{user_id}`             | DELETE | Admin | Deactivate user (soft delete)         |
+| Prefix     | Endpoint                     | Method | Auth  | Description                                                             |
+| ---------- | ---------------------------- | ------ | ----- | ----------------------------------------------------------------------- |
+| `/`      | `/`                        | GET    | No    | Health check                                                            |
+| `/users` | `/register`                | POST   | No    | Initiate registration (sends OTP)                                       |
+| `/users` | `/verify-otp`              | POST   | No    | Verify OTP to complete registration                                     |
+| `/users` | `/login`                   | POST   | No    | Login → access + refresh tokens                                        |
+| `/users` | `/refresh`                 | POST   | No    | Rotate access + refresh tokens                                          |
+| `/users` | `/logout`                  | POST   | No*   | Blacklist refresh (+ access) token                                      |
+| `/users` | `/me`                      | GET    | Yes   | Get own profile                                                         |
+| `/users` | `/me`                      | PATCH  | Yes   | Update own username/email/password                                      |
+| `/users` | `/me`                      | DELETE | Yes   | Deactivate own account (soft delete)                                    |
+| `/users` | `/profile-photo/{user_id}` | POST   | Yes   | Upload profile photo to S3                                              |
+| `/users` | `/profile-photo/{user_id}` | GET    | Yes   | Get presigned S3 URL                                                    |
+| `/items` | `/`                        | GET    | Yes   | List own items (paginated)                                              |
+| `/items` | `/`                        | POST   | Yes   | Create item                                                             |
+| `/items` | `/{item_id}`               | PATCH  | Yes   | Update item (partial, ownership-checked)                                |
+| `/items` | `/{item_id}`               | DELETE | Yes   | Delete item (ownership-checked)                                         |
+| `/items` | `/remind/{item_id}`        | POST   | Yes   | Set reminder (schedules Celery task)                                    |
+| `/admin` | `/items`                   | GET    | Admin | List all items (paginated)                                              |
+| `/admin` | `/items/detailed`          | GET    | Admin | List all items with owner username/email                                |
+| `/admin` | `/users`                   | GET    | Admin | List all active users (paginated)                                       |
+| `/admin` | `/items`                   | POST   | Admin | Create item for admin's own user                                        |
+| `/admin` | `/items/{item_id}`         | PATCH  | Admin | Update any item                                                         |
+| `/admin` | `/items/{item_id}`         | DELETE | Admin | Delete any item                                                         |
+| `/admin` | `/users/{user_id}`         | PATCH  | Admin | Update any user (`is_active`, `is_verified`, `profile_photo_key`) |
+| `/admin` | `/users/{user_id}`         | DELETE | Admin | Deactivate user (soft delete)                                           |
 
 \* `/logout` takes the token(s) as request params rather than reading the caller's bearer token, so it isn't gated by `CurrentUserDep`.
 
@@ -142,7 +147,7 @@ Copy `.env.example` to `.env` (or configure `.env.docker` for Docker) and fill i
 - **FastAPI version**: ^0.132.0 (uses `Annotated` + `Depends` pattern)
 - **Python**: >=3.10 (uses `type | None` union syntax)
 - **SQLAlchemy**: 2.0+ async (uses `Mapped`, `mapped_column`, `selectinload`, not legacy `Query` API)
-- **No HTML frontend** — this is a pure JSON API (no Jinja2 templates, no static files)
+- **Backend is a pure JSON API** — no Jinja2 templates, no static files served by FastAPI itself. The Streamlit app in `frontend/` is a separate process/codebase that consumes the API over HTTP; it doesn't share Python state or imports with `app/`.
 - **Celery on Windows** requires the `--pool=solo` flag
 - **Migration naming convention**: descriptive snake_case strings
 - **`is_admin`** exists on `UserModel` but is intentionally not exposed on any update schema — there's no API path to promote a user to admin.

@@ -23,6 +23,21 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 The API will be available at `http://localhost:8000` with interactive docs at `http://localhost:8000/docs`.
 
+### Running the Streamlit frontend (optional)
+
+```bash
+# 1. Install the frontend's extra dependencies
+uv sync --extra frontend
+
+# 2. Configure the frontend (defaults to http://localhost:8000)
+cp frontend/.env.example frontend/.env
+
+# 3. Start it, with the API already running
+streamlit run frontend/app.py
+```
+
+The UI will be available at `http://localhost:8501`. It's a separate process from the API — it talks to it purely over HTTP.
+
 ### Running with Docker
 
 ```bash
@@ -42,6 +57,7 @@ This launches: PostgreSQL, Redis, FastAPI app (port 8000), Celery worker, Celery
 - **Comprehensive Logging** — Auto-logged request/response with sensitive data masking
 - **Pagination** — All list endpoints support `page` and `size` query params
 - **Containerized** — Full Docker Compose stack (app, worker, beat, flower, postgres, redis)
+- **Streamlit Frontend** — Optional multipage UI (`frontend/`) covering auth, items/reminders, and the admin panel. Session state lives in memory for the browser tab only — refreshing the page logs you out by design; there's no cross-reload persistence.
 
 ## Tech Stack
 
@@ -56,6 +72,7 @@ This launches: PostgreSQL, Redis, FastAPI app (port 8000), Celery worker, Celery
 | **Email** | SMTP via FastAPI-Mail |
 | **Testing** | Pytest, httpx, Fakeredis, mock email |
 | **Infra** | Docker, Docker Compose, uv (package manager) |
+| **Frontend** | Streamlit (optional, separate process, `frontend/`) |
 
 ## About the Project
 
@@ -73,18 +90,20 @@ Every backend concept was applied directly to the same evolving codebase rather 
 ## Architecture
 
 ```
-Client  ──►  FastAPI (port 8000)  ──►  PostgreSQL
-                  │
-            ┌─────┴──────┐
-            ▼            ▼
-          Redis        AWS S3
-            │
-      ┌─────┴──────┐
-      ▼            ▼
-  Celery Beat   Celery Worker
-      │              │
-      └──────────────┘
-           (ETA tasks)
+Browser ──► Streamlit (8501, optional) ──┐
+                                          ▼
+API Client ─────────────────────►  FastAPI (port 8000)  ──►  PostgreSQL
+                                          │
+                                    ┌─────┴──────┐
+                                    ▼            ▼
+                                  Redis        AWS S3
+                                    │
+                              ┌─────┴──────┐
+                              ▼            ▼
+                          Celery Beat   Celery Worker
+                              │              │
+                              └──────────────┘
+                                   (ETA tasks)
 ```
 
 - **Arc 1 (Local)** — Configuration via `.env`, direct connections to local Postgres/Redis
@@ -113,6 +132,13 @@ app/             # Application source
 ├── middleware/   # Logging + rate limiting
 ├── worker/      # Celery tasks + config
 └── utils/       # Sensitive data masking
+
+frontend/        # Optional Streamlit UI (separate process, talks to app/ over HTTP)
+├── api/         # httpx client + one module per backend route group
+├── auth/        # st.session_state helpers (in-memory only, no persistence)
+├── components/  # Shared widgets (forms, item cards, auth guards)
+├── pages/       # One module per screen (login, register, items, profile, admin)
+└── app.py       # Entrypoint — builds the nav based on auth/admin state
 ```
 
 ## License
