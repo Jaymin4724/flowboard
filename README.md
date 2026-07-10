@@ -76,16 +76,17 @@ This launches: PostgreSQL, Redis, FastAPI app (port 8000), Celery worker, Celery
 
 ## About the Project
 
-FlowBoard started as a simple task management CRUD app built while learning FastAPI. Over the course of development, it grew into a production-style backend that demonstrates real-world engineering patterns:
+FlowBoard is a production-style backend that demonstrates real-world engineering patterns end to end:
 
-- Transitioning from synchronous CRUD to **async-first architecture** with proper connection pooling
-- Implementing **JWT authentication** with OTP-based email verification and token refresh flows
-- Building a **distributed reminder system** using Celery beat (batch dispatch every 60s) + Celery ETA tasks
-- Integrating **AWS S3** for file storage with presigned URL access patterns
-- Containerizing the full stack with **Docker Compose** (6 services)
-- Writing **comprehensive tests** with mocked Redis, isolated DB transactions, and mock email
+- Async-first architecture with proper connection pooling, built on SQLAlchemy 2.0 (async)
+- JWT authentication with OTP-based email verification and access/refresh token rotation
+- A distributed reminder system using Celery beat (batch dispatch every 60s) + per-item Celery ETA tasks
+- AWS S3 integration for file storage with presigned URL access patterns
+- A sliding-window per-IP rate limiter and a role-based admin panel
+- A full Docker Compose stack (6 services)
+- A 53-test suite (pytest + httpx + FakeRedis) with a success and a failure/permission case for every endpoint
 
-Every backend concept was applied directly to the same evolving codebase rather than building isolated demos, making FlowBoard a practical demonstration of how real software systems grow and become more maintainable over time.
+Curious about the story behind this project — why it exists and how it evolved? See [PITCH.md](./PITCH.md).
 
 ## Architecture
 
@@ -120,6 +121,18 @@ API Client ─────────────────────►  F
 
 Full interactive documentation is available at `/docs` when the server is running.
 
+## Testing
+
+```bash
+pytest                    # Run the full suite
+pytest --cov=app          # With coverage
+pytest -v                 # Verbose
+```
+
+53 tests cover every endpoint (S3 network calls are mocked rather than skipped), each with at least one success and one failure/permission case: registration/OTP, login/refresh/logout, profile CRUD, item CRUD + reminders + ownership checks, admin CRUD + admin-only access checks, profile photo upload/download/delete, and the per-IP rate limiter. Tests run against a real Postgres test DB (`TEST_DB_URL`) with per-test transaction rollback, plus a shared in-process FakeRedis — no external services required beyond Postgres.
+
+Overall line coverage is ~75% (`pytest --cov=app`). This understates real coverage on async DB-touching routes — a known `coverage.py`/SQLAlchemy-greenlet interaction drops lines executed immediately after an `await db...` call, even though they demonstrably run.
+
 ## Project Structure
 
 ```
@@ -140,6 +153,13 @@ frontend/        # Optional Streamlit UI (separate process, talks to app/ over H
 ├── pages/       # One module per screen (login, register, items, profile, admin)
 └── app.py       # Entrypoint — builds the nav based on auth/admin state
 ```
+
+## Roadmap
+
+Not yet implemented — planned next:
+
+- **Load testing with Locust** — simulate concurrent users against the item/reminder endpoints to validate rate limiting and Celery throughput under load
+- **AWS deployment** — move from local Docker Compose to a live, publicly reachable deployment
 
 ## License
 
