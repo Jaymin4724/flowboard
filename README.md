@@ -23,6 +23,24 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 The API will be available at `http://localhost:8000` with interactive docs at `http://localhost:8000/docs`.
 
+### Running background workers (Celery + Beat + Flower)
+
+Reminders and weekly auto-deactivation depend on Celery — the API alone won't dispatch them.
+
+```bash
+# Celery worker — processes reminder emails and item deactivation tasks
+celery -A app.worker.celery_app.celery_app worker --loglevel=info
+celery -A app.worker.celery_app.celery_app worker --pool=solo --loglevel=info   # Windows
+
+# Celery beat — schedules periodic tasks (reminder dispatch every 60s, weekly deactivation)
+celery -A app.worker.celery_app.celery_app beat --loglevel=info
+
+# Flower — Celery monitoring UI
+celery -A app.worker.celery_app.celery_app flower --port=5555
+```
+
+Flower will be available at `http://localhost:5555`.
+
 ### Running the Streamlit frontend (optional)
 
 ```bash
@@ -61,18 +79,18 @@ This launches: PostgreSQL, Redis, FastAPI app (port 8000), Celery worker, Celery
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| **Framework** | FastAPI (async) |
-| **Database** | PostgreSQL + SQLAlchemy 2.0 (async) + Alembic |
-| **Cache / Queue** | Redis (Celery broker/backend, rate limiting, OTP storage, token blacklist) |
-| **Background Jobs** | Celery (distributed task queue with beat scheduler) |
-| **Auth** | JWT (access + refresh tokens), bcrypt (passwords), OTP via email |
-| **Storage** | AWS S3 (profile photos with presigned URLs) |
-| **Email** | SMTP via FastAPI-Mail |
-| **Testing** | Pytest, httpx, Fakeredis, mock email |
-| **Infra** | Docker, Docker Compose, uv (package manager) |
-| **Frontend** | Streamlit (optional, separate process, `frontend/`) |
+| Layer                     | Technology                                                                 |
+| ------------------------- | -------------------------------------------------------------------------- |
+| **Framework**       | FastAPI (async)                                                            |
+| **Database**        | PostgreSQL + SQLAlchemy 2.0 (async) + Alembic                              |
+| **Cache / Queue**   | Redis (Celery broker/backend, rate limiting, OTP storage, token blacklist) |
+| **Background Jobs** | Celery (distributed task queue with beat scheduler)                        |
+| **Auth**            | JWT (access + refresh tokens), bcrypt (passwords), OTP via email           |
+| **Storage**         | AWS S3 (profile photos with presigned URLs)                                |
+| **Email**           | SMTP via FastAPI-Mail                                                      |
+| **Testing**         | Pytest, httpx, Fakeredis, mock email                                       |
+| **Infra**           | Docker, Docker Compose, uv (package manager)                               |
+| **Frontend**        | Streamlit (optional, separate process,`frontend/`)                       |
 
 ## About the Project
 
@@ -86,13 +104,19 @@ FlowBoard is a production-style backend that demonstrates real-world engineering
 - A full Docker Compose stack (6 services)
 - A 53-test suite (pytest + httpx + FakeRedis) with a success and a failure/permission case for every endpoint
 
-Curious about the story behind this project — why it exists and how it evolved? See [PITCH.md](./PITCH.md).
+## Project Journey
+
+My background is primarily MERN stack development. When I started learning Python and FastAPI, I began with a simple task-management app to learn the fundamentals — models, routes, a database, basic CRUD.
+
+As I kept learning, the project kept growing with me. Rather than starting a new toy project for every new backend concept, I extended the same codebase — so FlowBoard grew, got refactored, and matured the same way a real production backend does, instead of existing as a pile of disconnected demos.
+
+More than any single technology, FlowBoard reflects a shift in how I build software: from assembling CRUD endpoints to designing modular, testable, production-style backend systems — and from learning concepts in isolation to applying each one to a single codebase that had to keep working as it grew.
 
 ## Architecture
 
 ```
 Browser ──► Streamlit (8501, optional) ──┐
-                                          ▼
+                                         ▼
 API Client ─────────────────────►  FastAPI (port 8000)  ──►  PostgreSQL
                                           │
                                     ┌─────┴──────┐
@@ -112,12 +136,12 @@ API Client ─────────────────────►  F
 
 ## Endpoints Overview
 
-| Group | Endpoints | Auth |
-|-------|-----------|------|
-| **Users** | Register, Verify OTP, Login, Refresh, Upload/Get Profile Photo | Mixed (register/login are public) |
-| **Items** | CRUD + Set Reminder | Bearer token |
-| **Admin** | List items/users, Create/Update/Delete items, Promote/Deactivate users | Admin token |
-| **Health** | `GET /` — server status | Public |
+| Group            | Endpoints                                                              | Auth                              |
+| ---------------- | ---------------------------------------------------------------------- | --------------------------------- |
+| **Users**  | Register, Verify OTP, Login, Refresh, Upload/Get Profile Photo         | Mixed (register/login are public) |
+| **Items**  | CRUD + Set Reminder                                                    | Bearer token                      |
+| **Admin**  | List items/users, Create/Update/Delete items, Promote/Deactivate users | Admin token                       |
+| **Health** | `GET /` — server status                                             | Public                            |
 
 Full interactive documentation is available at `/docs` when the server is running.
 
