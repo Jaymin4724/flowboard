@@ -1,7 +1,10 @@
+import logging
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig, MessageType
 from app.core.config import settings
 from pathlib import Path
-from fastapi import HTTPException, status
+
+logger = logging.getLogger(__name__)
+
 
 class EmailService:
     def __init__(self):
@@ -41,11 +44,8 @@ class EmailService:
 
         try:
             await self.fastmail.send_message(message)
-        except:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Failed to send verification email. Please try again later.",
-            )
+        except Exception as e:
+            logger.error(f"Failed to send OTP email to {email_to}: {e}")
 
     async def send_reminder_email(self, email_to: str, subject: str, body: str):
         """Internal async method to send the actual email"""

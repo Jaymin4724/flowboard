@@ -46,7 +46,7 @@ def mask_sensitive_data(data):
     elif hasattr(data, "__dict__"):
         module_name = getattr(data, "__module__", "")
         # Only expand data schemas/models; keep internal logic objects as 'obj
-        if "app.schemas" in module_name or "app.models" in module_name:
+        if "app.api.v1.schemas" in module_name or "app.db.models" in module_name:
             return mask_sensitive_data(vars(data))
         else:
             return "obj"
