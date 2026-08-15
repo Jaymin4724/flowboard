@@ -71,7 +71,7 @@ This launches: PostgreSQL, Redis, FastAPI app (port 8000), Celery worker, Celery
 - **Smart Reminders** — Set per-item reminders dispatched via Celery beat + ETA tasks; once the reminder email fires, `remind_me_at`/`reminded`/`dispatched` all clear back to their unset state; completed items are auto-deactivated weekly
 - **Profile Photos** — Upload/download via AWS S3 with presigned URLs
 - **Admin Panel** — Manage all users and items, promote admins, deactivate users
-- **Rate Limiting** — Sliding-window per-IP rate limiter via Redis
+- **Rate Limiting** — Token bucket per-IP rate limiter via Redis
 - **Comprehensive Logging** — Auto-logged request/response with sensitive data masking
 - **Pagination** — All list endpoints support `page` and `size` query params
 - **Containerized** — Full Docker Compose stack (app, worker, beat, flower, postgres, redis)
@@ -100,7 +100,7 @@ FlowBoard is a production-style backend that demonstrates real-world engineering
 - JWT authentication with OTP-based email verification and access/refresh token rotation
 - A distributed reminder system using Celery beat (batch dispatch every 60s) + per-item Celery ETA tasks
 - AWS S3 integration for file storage with presigned URL access patterns
-- A sliding-window per-IP rate limiter and a role-based admin panel
+- A token bucket per-IP rate limiter and a role-based admin panel
 - A full Docker Compose stack (6 services)
 - A 53-test suite (pytest + httpx + FakeRedis) with a success and a failure/permission case for every endpoint
 

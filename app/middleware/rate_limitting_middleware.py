@@ -1,9 +1,15 @@
+import time
+
 from fastapi import status, Request, Response
 from app.core.redis import get_redis
 from app.core.config import settings
 
 
-# Implemented token bucket algorithm for ratelimitting
+CAPACITY = 15
+REFILL_RATE = CAPACITY / 60  # tokens per second -> full bucket refills every 60s
+
+
+# Token bucket algorithm for rate limiting
 async def rate_limitter_middleware(request: Request, call_next):
     if settings.TESTING == True:
         response = await call_next(request)
@@ -13,24 +19,29 @@ async def rate_limitter_middleware(request: Request, call_next):
 
     ip_addr = request.client.host
     key = f"rate_limit:{ip_addr}"
-
-    limit = 15
-    ttl = 60  # window
+    now = time.time()
 
     try:
-        # Increment the counter (Redis creates it if it doesn't exist)
-        current_count = await redis.incr(key)
+        data = await redis.hgetall(key)
 
-        # If this is the first hit, set the expiration window
-        if current_count == 1:
-            await redis.expire(key, ttl)
+        if not data:
+            tokens = float(CAPACITY)
+        else:
+            last_tokens = float(data["tokens"])
+            last_refill = float(data["last_refill"])
+            refilled = last_tokens + (now - last_refill) * REFILL_RATE
+            tokens = min(CAPACITY, refilled)
 
-        # Check if limit is exceeded
-        if current_count > limit:
+        if tokens < 1:
+            await redis.hset(key, mapping={"tokens": tokens, "last_refill": now})
+            await redis.expire(key, int(CAPACITY / REFILL_RATE) + 60)
             return Response(
                 content="Limit exceeded, Please try again later.",
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             )
+
+        await redis.hset(key, mapping={"tokens": tokens - 1, "last_refill": now})
+        await redis.expire(key, int(CAPACITY / REFILL_RATE) + 60)
 
         response = await call_next(request)
         return response
